@@ -6,5 +6,5 @@ export default async function TournamentPage({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const data = await getPublicTournament(slug);
   if (!data) notFound();
-  return <PublicTournament data={JSON.parse(JSON.stringify(data))} />;
+  return <PublicTournament key={data.tournament.id} data={JSON.parse(JSON.stringify(data))} />;
 }

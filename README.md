@@ -41,6 +41,7 @@ If using an existing PostgreSQL service, copy `.env.example` to `.env`, configur
 - Case investigation transitions, affected-participant responses, idempotent warnings/suspensions/disqualification decisions, appeal deadlines, independent review and guarded reversals. Arbitrary points/score adjustments and player-specific penalties within team rosters remain incomplete.
 - Private evidence upload/download with size/type/signature validation. Development-only private local storage; configurable S3/R2-compatible production storage. Evidence metadata and objects are excluded from public projections.
 - Real dashboard metrics, audit history, initial in-app notifications, public tournament pages and browser print/save-to-PDF layouts.
+- **Share tournament → Enable public link → Copy link** lets spectators follow a generated tournament without login. Public pages show completion progress, fixtures, scores, brackets, standings and the champion; they refresh every 15 seconds while visible, on return/focus and on manual refresh. Making the tournament private or deleting it revokes public access. Remote spectators need a publicly hosted app address; localhost links work only on the current computer.
 - Server-side validation, tenant guards, composite foreign keys, tournament locking, optimistic revisions, idempotency and PostgreSQL-backed atomic rate limits.
 
 ## Verify

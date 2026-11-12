@@ -1,16 +1,34 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Download, Globe2, Trophy, Users } from "lucide-react";
-import type { Jsonify, getPublicTournament } from "@/lib/queries";
+import { ArrowUpRight, Download, Globe2, RefreshCw, Trophy, Users } from "lucide-react";
 import type { FormatId, Structure } from "@/modules/tournaments/types";
 import { formatLibrary } from "@/modules/tournaments/registry";
 import { dateLabel, title } from "@/lib/utils";
 import { Badge, Button, Card, EmptyState, StatusBadge, Tabs } from "./ui/primitives";
 import { BracketView, StandingsView } from "./competition-views";
-type PublicData = NonNullable<Jsonify<Awaited<ReturnType<typeof getPublicTournament>>>>;
-export function PublicTournament({ data: d }: { data: PublicData }) {
+import { usePublicTournament, type PublicTournamentData } from "./use-public-tournament";
+import { tournamentProgress } from "@/modules/tournaments/progress";
+export function PublicTournament({ data: initial }: { data: PublicTournamentData }) {
   const [tab, setTab] = useState("fixtures");
+  const {
+    data: d,
+    refreshing,
+    error,
+    unavailable,
+    updatedAt,
+    refresh,
+  } = usePublicTournament(initial);
+  if (unavailable)
+    return (
+      <main className="page-error">
+        <h1>This tournament isn’t available.</h1>
+        <p>The organizer may have made it private or removed it.</p>
+        <Link href="/" className="button button-primary">
+          Go to Tournivo
+        </Link>
+      </main>
+    );
   const t = d.tournament;
   const names = (id: string | null) =>
     d.entrants.find((p) => p.id === id)?.name ?? "To be determined";
@@ -31,6 +49,7 @@ export function PublicTournament({ data: d }: { data: PublicData }) {
     championId: t.championId,
     revision: 0,
   };
+  const progress = tournamentProgress(structure);
   return (
     <div className="public-page">
       <nav className="public-nav">
@@ -68,6 +87,67 @@ export function PublicTournament({ data: d }: { data: PublicData }) {
         </div>
       </header>
       <main className="public-content">
+        <Card className="public-progress" role="region" aria-label="Tournament progress">
+          <div className="public-progress-heading">
+            <div>
+              <h2>Tournament progress</h2>
+              <p>
+                {t.status === "completed" ? "Tournament complete" : `${progress.percent}% complete`}
+              </p>
+            </div>
+            <Button variant="outline" size="sm" loading={refreshing} onClick={() => void refresh()}>
+              {!refreshing && <RefreshCw size={15} />}Refresh progress
+            </Button>
+          </div>
+          <progress
+            className="public-progress-bar"
+            aria-label="Tournament completion"
+            max={100}
+            value={progress.percent}
+          />
+          <dl className="public-progress-stats">
+            <div>
+              <dt>Matches completed</dt>
+              <dd>
+                {progress.completed} / {progress.total}
+              </dd>
+            </div>
+            <div>
+              <dt>Ready to play</dt>
+              <dd>{progress.ready}</dd>
+            </div>
+            <div>
+              <dt>Current round</dt>
+              <dd>
+                {t.status === "completed"
+                  ? "Finished"
+                  : progress.currentRound
+                    ? `Round ${progress.currentRound}`
+                    : "Awaiting results"}
+              </dd>
+            </div>
+          </dl>
+          <div className="public-update-status" role="status">
+            {error ? (
+              <p className="field-error">{error}</p>
+            ) : (
+              <p>
+                {updatedAt ? (
+                  <>
+                    Updated{" "}
+                    <time dateTime={updatedAt.toISOString()}>{updatedAt.toLocaleTimeString()}</time>{" "}
+                    ·{" "}
+                  </>
+                ) : null}
+                Updates every 15 seconds. No login required.
+              </p>
+            )}
+            <p>
+              Byes are excluded.
+              {t.format === "double-elimination" ? " The final reset counts only if required." : ""}
+            </p>
+          </div>
+        </Card>
         {t.championId && (
           <div className="public-champion">
             <Trophy size={35} />

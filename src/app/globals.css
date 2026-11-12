@@ -2876,6 +2876,85 @@ tbody tr:hover {
 .public-content .tabs {
   margin-top: 12px;
 }
+.share-tournament-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.share-tournament-body .input {
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+.share-link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.public-progress {
+  margin: 20px 0 26px;
+  padding: 24px;
+}
+.public-progress-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.public-progress-heading h2 {
+  font-size: 17px;
+}
+.public-progress-heading p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.public-progress-bar {
+  display: block;
+  width: 100%;
+  height: 9px;
+  margin: 22px 0;
+  border: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  appearance: none;
+  background: var(--border);
+  accent-color: var(--primary);
+}
+.public-progress-bar::-webkit-progress-bar {
+  background: var(--border);
+}
+.public-progress-bar::-webkit-progress-value {
+  background: var(--primary);
+  border-radius: 20px;
+}
+.public-progress-bar::-moz-progress-bar {
+  background: var(--primary);
+  border-radius: 20px;
+}
+.public-progress-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.public-progress-stats dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+.public-progress-stats dd {
+  margin: 7px 0 0;
+  font-size: 20px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.public-update-status {
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
 .public-champion {
   margin-top: 30px;
   background: #fff9df;

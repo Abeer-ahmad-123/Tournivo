@@ -708,6 +708,73 @@ describe("real PostgreSQL competition lifecycle", () => {
       /email|snapshot|reportedBy|objectKey|organizationId|createdBy/,
     );
   });
+  it("serves fresh anonymous progress only while the tournament is public", async () => {
+    const { GET } = await import("@/app/api/public/tournaments/[slug]/route");
+    const id = await create("single-elimination", "individual", 2),
+      t = await tournament(id);
+    const read = (slug = t.slug) =>
+      GET(new Request(`http://localhost/api/public/tournaments/${slug}`), {
+        params: Promise.resolve({ slug }),
+      });
+    expect((await read()).status).toBe(404);
+    expect((await read("not-a-tournament")).status).toBe(404);
+    await execute(owner, {
+      action: "tournament.publish",
+      ...(await scoped(id)),
+      visibility: "public",
+    });
+    const response = await read();
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const initial = await response.json();
+    expect(initial.matches[0].scores).toBeNull();
+    expect(JSON.stringify(initial)).not.toMatch(
+      /email|snapshot|reportedBy|objectKey|organizationId|createdBy|draft|refereeId/,
+    );
+    const [match] = await db.select().from(s.matches).where(eq(s.matches.tournamentId, id));
+    await execute(owner, {
+      action: "match.result",
+      ...(await scoped(id)),
+      matchId: match.id,
+      scores: [2, 0],
+      idempotencyKey: randomUUID(),
+    });
+    const updated = await (await read()).json();
+    expect(updated.matches[0].scores).toEqual([2, 0]);
+    expect(updated.tournament.status).toBe("completed");
+    expect(updated.tournament.championId).toBeTruthy();
+    await execute(owner, {
+      action: "tournament.publish",
+      ...(await scoped(id)),
+      visibility: "private",
+    });
+    expect((await read()).status).toBe(404);
+    await execute(owner, {
+      action: "tournament.publish",
+      ...(await scoped(id)),
+      visibility: "public",
+    });
+    await execute(owner, {
+      action: "tournament.delete",
+      ...(await scoped(id)),
+      confirmationName: t.name,
+      idempotencyKey: randomUUID(),
+    });
+    expect((await read()).status).toBe(404);
+    const draft = await execute(owner, {
+      action: "tournament.save",
+      organizationId: org,
+      expectedRevision: 0,
+      draft: tournamentDraftSchema.parse({
+        name: "Public draft remains hidden",
+        sportId: "foosball",
+        visibility: "public",
+        entrantNames: ["One", "Two"],
+        roster: {},
+      }),
+    });
+    expect((await read((await tournament(String(draft.id))).slug)).status).toBe(404);
+  });
   it("withdraws entrants without deleting their registrations or completed results", async () => {
     const id = await create(),
       [p] = await db.select().from(s.participants).where(eq(s.participants.tournamentId, id));

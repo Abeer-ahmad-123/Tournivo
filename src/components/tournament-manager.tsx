@@ -43,6 +43,7 @@ import { CommandForm } from "./command-form";
 import { BracketView, StandingsView } from "./competition-views";
 import { RulebookBuilder } from "./rulebook-builder";
 import { transitions } from "@/modules/discipline/workflow";
+import { ShareTournament } from "./share-tournament";
 
 export function TournamentManager({
   tournament: t,
@@ -166,6 +167,9 @@ export function TournamentManager({
           </p>
         </div>
         <div className="tournament-heading-actions">
+          {canManage && t.status !== "draft" && (
+            <ShareTournament tournament={t} send={send} disabled={busy} />
+          )}
           {canManage && (
             <Button
               variant="outline"
