@@ -1,0 +1,17 @@
+# Technical decisions
+
+- Tournament deletion sets `tournaments.deleted_at` and makes the tournament private in the same audited, revision-checked, idempotent transaction. Hard deletion would violate database-enforced immutable result, rule and disciplinary history. Workspace lists, counts, detail/evidence access and public projections exclude deleted tournaments; further commands are blocked. Historic schedules remain but no longer reserve venue capacity, and registrations in deleted tournaments no longer lock shared team rosters. Owners, organizers and assigned tournament admins can delete after confirming the exact name. There is no restore or permanent-purge interface.
+
+- 2026-11-12: Empty repository; adopt requested Next.js/PostgreSQL/Drizzle architecture. Use direct route handlers rather than introducing tRPC before a need exists.
+- Use stable Better Auth instead of the still-beta Auth.js v5 release. It is an established provider permitted by the brief and supports the Drizzle schema and email/password sessions.
+- Real local PostgreSQL for verification; no fake in-memory persistence. Production database configuration remains explicit.
+- No automatic cloud resource creation or framework replacement. Implement in this repository for the user's requested Vercel-compatible deployment.
+- Ship tested strategies incrementally. Unsupported formats appear as planned, never selectable as if complete.
+- Disciplinary ambiguity and unsafe reversals are explicit conflicts, never silently chosen outcomes.
+- Fixed two-group knockout uses a documented initial-seed final tiebreak rather than arbitrary database IDs. It is not advertised as a general multi-stage builder.
+- The explicit future-forfeit policy preserves past results and awards opponents a 1–0 result. Two ineligible opponents and insufficient group qualification are blocked for organizer resolution.
+- Evidence is proxied through authorized routes and served as attachments. Local private storage is development-only; production requires a configured private S3-compatible bucket. No browser-visible public object URLs.
+- Use atomic PostgreSQL rate-limit counters instead of process memory. Redis/BullMQ remains deferred until background jobs require it.
+- Narrow dependency overrides replace vulnerable esbuild/minimatch transitive versions. Lint, migration generation and tests verify compatibility; the dependency audit reports zero advisories after installation.
+- Keep the full product scope visible as unfinished. No public registration, advanced strategy, arbitrary penalty or production operational capability is implied by a visible UI or schema table.
+- Random teams use server-side cryptographic Fisher–Yates shuffling followed by round-robin assignment, keeping roster sizes within one player of each other. Maximum team size determines the smallest number of balanced teams that fit all players. No sport's suggested roster size is imposed. Each name entry identifies a separate person, even when names repeat. The preview has no writes; saving validates complete index-based coverage and persists the exact reviewed draw in one organization-scoped, idempotent transaction. Random names avoid existing organization names; a concurrent name collision requires reshuffling.
